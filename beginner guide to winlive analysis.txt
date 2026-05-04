@@ -1,0 +1,58 @@
+To capture process, processId,processname, commandline
+Get-CimInstance -Class Win32_Process | Select-Object ProcessId, ProcessName, CommandLine
+
+Finding Process by Name
+Get-CimInstance -Class Win32_Process | Where-Object -Property ProcessName -EQ conhost.exe
+
+To get ParentProcessId (assuming ppid is 1956)
+Get-CimInstance -Class Win32_Process | Where-Object -Property ParentProcessId -EQ 1956
+
+To review network comm
+Get-NetTCPConnection
+Get-NetTCPConnection -State Listen | Select-Object -Property LocalAddress,LocalPort, OwningProcess (listening port)
+Get-NetTCPConnection -RemoteAddress 52.123.175.98 | Select-Object CreationTime, LocalAddress, LocalPort, RemoteAddress, RemotePort, OwningProcess,State (connection with remote IP 52.123.175.98)
+
+Review services
+Get-CimInstance -ClassName Win32_Service | Format-List Name,Caption,PathName,Description
+Get-Service bilaldemotest (check service status, e.g service name bilaldemotest)
+
+
+if service is running
+Stop-Service -Name "bilalservicedemotest" -Force
+
+sc.exe delete bilalservicedemotest
+
+Check list of enabled user & local group privileges
+Get-LocalUser | Where-Object {$_.Enabled $True}
+Get-LocalGroupMemberAdministrator
+
+To check for brute force pattern
+Get-WinEvent -FilterHashtable @{
+    LogName='Security'
+    Id=4624,4625
+    StartTime=(Get-Date).AddDays(-7)
+} | Select TimeCreated, Id, MachineName | Sort TimeCreated
+
+Get Specific date Logs (logs between 04/01/2026 and 14/02/2026) 
+$sdate= Get-Date 04/01/2026;
+$edate= Get-Date 14/02/2026;
+Get-WinEvent -FilterHashTable @{LogName='Security';StartTime=$sdate;EndTime=$edate;}
+
+For reg based persistence 
+Check on following patterns
+
+User persistence 
+HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
+system persistence
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+Winlogon entries
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+Policy keys
+HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run
+
+cmd  (for startup process)
+type C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup 
+
+To access a system remotely via PS
+
+Get-Process -ComputerName RemoteSystemofBilal (RemoteSystemofBilal= name of remote system)
